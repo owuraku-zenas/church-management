@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,14 +10,42 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ArrowLeft, Search } from "lucide-react"
+import { toast } from "@/components/ui/use-toast"
 
 export default function EventAttendancePage({ params }: { params: { eventId: string } }) {
   const [searchTerm, setSearchTerm] = useState("")
-  const [attendees, setAttendees] = useState<{ id: string; name: string; present: boolean }[]>([])
+  const [attendees, setAttendees] = useState<
+    { id: string; name: string; cellGroup: string; phone: string; present: boolean }[]
+  >([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [event, setEvent] = useState<{ name: string; date: string }>({ name: "", date: "" })
 
-  // In a real app, you would fetch the event details and member list here
-  const eventName = "Sunday Service"
-  const eventDate = "April 21, 2024"
+  useEffect(() => {
+    // Simulate loading data
+    const timer = setTimeout(() => {
+      // Mock event data
+      setEvent({
+        name: "Sunday Service",
+        date: "April 21, 2024",
+      })
+
+      // Mock member data
+      setAttendees([
+        { id: "1", name: "John Doe", cellGroup: "Campus Fellowship", phone: "0123456789", present: false },
+        { id: "2", name: "Jane Smith", cellGroup: "Graduate Group", phone: "0123456788", present: true },
+        { id: "3", name: "Michael Johnson", cellGroup: "Campus Fellowship", phone: "0123456787", present: false },
+        { id: "4", name: "Sarah Williams", cellGroup: "Freshers Group", phone: "0123456786", present: true },
+        { id: "5", name: "David Brown", cellGroup: "Graduate Group", phone: "0123456785", present: false },
+        { id: "6", name: "Emily Davis", cellGroup: "Campus Fellowship", phone: "0123456784", present: true },
+        { id: "7", name: "Robert Wilson", cellGroup: "Freshers Group", phone: "0123456783", present: false },
+        { id: "8", name: "Jennifer Taylor", cellGroup: "Graduate Group", phone: "0123456782", present: true },
+      ])
+      setIsLoading(false)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [params.eventId])
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
@@ -29,11 +57,39 @@ export default function EventAttendancePage({ params }: { params: { eventId: str
     )
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Attendance submitted:", attendees)
-    // Here you would typically save the attendance data to your database
+    setIsSaving(true)
+
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      toast({
+        title: "Success",
+        description: "Attendance has been saved successfully",
+      })
+
+      // In a real app, you would redirect to the attendance page
+      // router.push("/attendance")
+    } catch (error) {
+      console.error("Error saving attendance:", error)
+      toast({
+        title: "Error",
+        description: "Failed to save attendance. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSaving(false)
+    }
   }
+
+  const filteredAttendees = attendees.filter(
+    (attendee) =>
+      attendee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      attendee.cellGroup.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      attendee.phone.includes(searchTerm),
+  )
 
   return (
     <div className="container mx-auto py-10">
@@ -48,8 +104,8 @@ export default function EventAttendancePage({ params }: { params: { eventId: str
 
       <Card>
         <CardHeader>
-          <CardTitle>{eventName}</CardTitle>
-          <CardDescription>Mark attendance for {eventDate}</CardDescription>
+          <CardTitle>{event.name}</CardTitle>
+          <CardDescription>Mark attendance for {event.date}</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-6">
@@ -74,14 +130,20 @@ export default function EventAttendancePage({ params }: { params: { eventId: str
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {attendees.length === 0 ? (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center">
+                      Loading members...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredAttendees.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center">
                       No members found
                     </TableCell>
                   </TableRow>
                 ) : (
-                  attendees.map((attendee) => (
+                  filteredAttendees.map((attendee) => (
                     <TableRow key={attendee.id}>
                       <TableCell>
                         <Checkbox
@@ -90,8 +152,8 @@ export default function EventAttendancePage({ params }: { params: { eventId: str
                         />
                       </TableCell>
                       <TableCell className="font-medium">{attendee.name}</TableCell>
-                      <TableCell>Cell Group 1</TableCell>
-                      <TableCell>+1234567890</TableCell>
+                      <TableCell>{attendee.cellGroup}</TableCell>
+                      <TableCell>{attendee.phone}</TableCell>
                     </TableRow>
                   ))
                 )}
@@ -102,7 +164,9 @@ export default function EventAttendancePage({ params }: { params: { eventId: str
             <Button variant="outline" type="button" asChild>
               <Link href="/attendance">Cancel</Link>
             </Button>
-            <Button type="submit">Save Attendance</Button>
+            <Button type="submit" disabled={isLoading || isSaving}>
+              {isSaving ? "Saving..." : "Save Attendance"}
+            </Button>
           </CardFooter>
         </form>
       </Card>

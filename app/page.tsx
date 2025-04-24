@@ -1,27 +1,37 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserPlus, Users, Calendar, ClipboardList, BarChart3 } from "lucide-react"
-import prisma from "@/lib/prisma"
 
-export default async function Home() {
-  // Fetch counts from the database
-  const memberCount = await prisma.member.count()
-  const eventCount = await prisma.event.count()
-  const departmentCount = await prisma.department.count()
-  const cellGroupCount = await prisma.cellGroup.count()
+export default function Home() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [stats, setStats] = useState({
+    memberCount: 0,
+    eventCount: 0,
+    departmentCount: 0,
+    cellGroupCount: 0,
+    attendanceRate: 0,
+  })
 
-  // Calculate attendance rate (if there are events)
-  let attendanceRate = 0
-  if (eventCount > 0) {
-    const totalAttendances = await prisma.attendance.count({
-      where: {
-        status: "PRESENT",
-      },
-    })
-    const totalPossibleAttendances = memberCount * eventCount
-    attendanceRate = totalPossibleAttendances > 0 ? Math.round((totalAttendances / totalPossibleAttendances) * 100) : 0
-  }
+  useEffect(() => {
+    // Simulate loading data
+    const timer = setTimeout(() => {
+      // Mock stats data
+      setStats({
+        memberCount: 32,
+        eventCount: 6,
+        departmentCount: 4,
+        cellGroupCount: 3,
+        attendanceRate: 71,
+      })
+      setIsLoading(false)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
     <div className="container mx-auto py-10">
@@ -37,7 +47,7 @@ export default async function Home() {
             <UserPlus className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{memberCount}</div>
+            <div className="text-3xl font-bold">{isLoading ? "..." : stats.memberCount}</div>
             <p className="text-xs text-muted-foreground">Total registered members</p>
             <Button asChild className="mt-4 w-full">
               <Link href="/members">Manage Members</Link>
@@ -51,7 +61,7 @@ export default async function Home() {
             <Calendar className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{eventCount}</div>
+            <div className="text-3xl font-bold">{isLoading ? "..." : stats.eventCount}</div>
             <p className="text-xs text-muted-foreground">Total events created</p>
             <Button asChild className="mt-4 w-full">
               <Link href="/events">Manage Events</Link>
@@ -65,7 +75,7 @@ export default async function Home() {
             <ClipboardList className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{attendanceRate}%</div>
+            <div className="text-3xl font-bold">{isLoading ? "..." : `${stats.attendanceRate}%`}</div>
             <p className="text-xs text-muted-foreground">Average attendance rate</p>
             <Button asChild className="mt-4 w-full">
               <Link href="/attendance">Track Attendance</Link>
@@ -79,7 +89,7 @@ export default async function Home() {
             <Users className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{departmentCount}</div>
+            <div className="text-3xl font-bold">{isLoading ? "..." : stats.departmentCount}</div>
             <p className="text-xs text-muted-foreground">Active departments</p>
             <Button asChild className="mt-4 w-full">
               <Link href="/departments">Manage Departments</Link>
@@ -93,7 +103,7 @@ export default async function Home() {
             <Users className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{cellGroupCount}</div>
+            <div className="text-3xl font-bold">{isLoading ? "..." : stats.cellGroupCount}</div>
             <p className="text-xs text-muted-foreground">Active cell groups</p>
             <Button asChild className="mt-4 w-full">
               <Link href="/cell-groups">Manage Cell Groups</Link>

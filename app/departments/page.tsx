@@ -1,24 +1,51 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus } from "lucide-react"
-import prisma from "@/lib/prisma"
 
-export default async function DepartmentsPage() {
-  // Fetch departments from the database
-  const departments = await prisma.department.findMany({
-    include: {
-      _count: {
-        select: {
-          members: true,
+export default function DepartmentsPage() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [departments, setDepartments] = useState<any[]>([])
+
+  useEffect(() => {
+    // Simulate loading data
+    const timer = setTimeout(() => {
+      // Mock department data
+      setDepartments([
+        {
+          id: "dep1",
+          name: "Choir",
+          description: "Church choir and music ministry",
+          _count: { members: 12 },
         },
-      },
-    },
-    orderBy: {
-      name: "asc",
-    },
-  })
+        {
+          id: "dep2",
+          name: "Ushering",
+          description: "Church ushering department",
+          _count: { members: 8 },
+        },
+        {
+          id: "dep3",
+          name: "Media",
+          description: "Church media and technical department",
+          _count: { members: 5 },
+        },
+        {
+          id: "dep4",
+          name: "Prayer",
+          description: "Prayer warriors team",
+          _count: { members: 15 },
+        },
+      ])
+      setIsLoading(false)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
     <div className="container mx-auto py-10">
@@ -48,7 +75,13 @@ export default async function DepartmentsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {departments.length === 0 ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center">
+                    Loading departments...
+                  </TableCell>
+                </TableRow>
+              ) : departments.length === 0 ? (
                 <TableRow>
                   <TableCell className="font-medium">No departments found</TableCell>
                   <TableCell colSpan={3}></TableCell>

@@ -2,50 +2,71 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Calendar, Phone, Mail, School, Home, Users } from "lucide-react"
-import prisma from "@/lib/prisma"
 import { notFound } from "next/navigation"
 
+// Dummy data
+const dummyMember = {
+  id: "1",
+  name: "John Doe",
+  phone: "+1234567890",
+  email: "john.doe@example.com",
+  birthday: "1995-05-15",
+  university: "University of Example",
+  program: "Computer Science",
+  hostel: "Unity Hall",
+  roomNumber: "A101",
+  cellGroup: {
+    id: "1",
+    name: "Alpha Cell Group"
+  },
+  invitedBy: {
+    id: "2",
+    name: "Jane Smith"
+  },
+  departments: [
+    {
+      departmentId: "1",
+      department: {
+        id: "1",
+        name: "Worship"
+      }
+    },
+    {
+      departmentId: "2",
+      department: {
+        id: "2",
+        name: "Media"
+      }
+    }
+  ],
+  attendances: [
+    {
+      id: "1",
+      event: {
+        id: "1",
+        name: "Sunday Service",
+        date: "2024-03-17T10:00:00Z"
+      }
+    },
+    {
+      id: "2",
+      event: {
+        id: "2",
+        name: "Bible Study",
+        date: "2024-03-15T18:00:00Z"
+      }
+    }
+  ]
+}
+
 export default async function MemberDetailPage({ params }: { params: { id: string } }) {
-  const member = await prisma.member.findUnique({
-    where: {
-      id: params.id,
-    },
-    include: {
-      cellGroup: true,
-      invitedBy: true,
-      departments: {
-        include: {
-          department: true,
-        },
-      },
-      attendances: {
-        include: {
-          event: true,
-        },
-        orderBy: {
-          event: {
-            date: "desc",
-          },
-        },
-        take: 10,
-      },
-    },
-  })
+  // For demo purposes, we'll just use the dummy member
+  const member = dummyMember
 
-  if (!member) {
-    notFound()
-  }
-
-  // Calculate attendance rate
-  const attendanceCount = await prisma.attendance.count({
-    where: {
-      memberId: member.id,
-      status: "PRESENT",
-    },
-  })
-
-  const totalEvents = await prisma.event.count()
-  const attendanceRate = totalEvents > 0 ? Math.round((attendanceCount / totalEvents) * 100) : 0
+  // Dummy attendance statistics
+  const attendanceCount = 15
+  const totalEvents = 20
+  const attendanceRate = Math.round((attendanceCount / totalEvents) * 100)
 
   return (
     <div className="container mx-auto py-10">
@@ -75,6 +96,12 @@ export default async function MemberDetailPage({ params }: { params: { id: strin
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span>{member.email}</span>
+                  </div>
+                )}
+                {member.birthday && (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span>{new Date(member.birthday).toLocaleDateString()}</span>
                   </div>
                 )}
                 {member.university && (

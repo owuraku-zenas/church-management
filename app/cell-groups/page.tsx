@@ -1,24 +1,45 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Plus } from "lucide-react"
-import prisma from "@/lib/prisma"
 
-export default async function CellGroupsPage() {
-  // Fetch cell groups from the database
-  const cellGroups = await prisma.cellGroup.findMany({
-    include: {
-      _count: {
-        select: {
-          members: true,
+export default function CellGroupsPage() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [cellGroups, setCellGroups] = useState<any[]>([])
+
+  useEffect(() => {
+    // Simulate loading data
+    const timer = setTimeout(() => {
+      // Mock cell group data
+      setCellGroups([
+        {
+          id: "clg1",
+          name: "Campus Fellowship",
+          description: "Main campus fellowship group",
+          _count: { members: 15 },
         },
-      },
-    },
-    orderBy: {
-      name: "asc",
-    },
-  })
+        {
+          id: "clg2",
+          name: "Graduate Group",
+          description: "For graduate students and alumni",
+          _count: { members: 10 },
+        },
+        {
+          id: "clg3",
+          name: "Freshers Group",
+          description: "For first-year students",
+          _count: { members: 7 },
+        },
+      ])
+      setIsLoading(false)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
     <div className="container mx-auto py-10">
@@ -48,7 +69,13 @@ export default async function CellGroupsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {cellGroups.length === 0 ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center">
+                    Loading cell groups...
+                  </TableCell>
+                </TableRow>
+              ) : cellGroups.length === 0 ? (
                 <TableRow>
                   <TableCell className="font-medium">No cell groups found</TableCell>
                   <TableCell colSpan={3}></TableCell>
